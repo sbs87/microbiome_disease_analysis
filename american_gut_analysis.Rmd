@@ -1,0 +1,53 @@
+---
+title: "american_gut_analysis"
+author: "Steven Smith, PhD"
+date: "2/4/2020"
+output: html_document
+---
+
+Compoisition profile
+
+Unique and common microbiomes
+-number of different speies
+
+
+Top micrbiomes
+
+Are there known pathogenic microbes? Health microbes? 
+
+
+```{r}
+library(tidyverse)
+library(reshape2)
+library(plyr)
+wd<-"/Users/stevensmith/Projects/microbiome_disease_analysis/"
+sample_1<-read.table(paste0(wd,"000113074.txt"))
+sample_1$sample<-"sample1"
+sample_2<-read.table(paste0(wd,"000113075.txt"))
+sample_2$sample<-"sample2"
+
+american_gut_taxa<-rbind(sample_1,sample_2)
+american_gut_taxa<-plyr::rename(x = american_gut_taxa,c("V1"="taxa_raw","V2"="RA"))
+
+american_gut_taxa<-separate(american_gut_taxa,col = taxa_raw,into = c("k","p","c","o","f","g","s"),sep = ";.__")
+
+american_gut_taxa.wide<-melt(american_gut_taxa,id.vars = c("sample","k","p","c","o","f","g","s","RA"))
+ggplot(american_gut_taxa.wide,aes(x=sample,y=RA,fill=as.factor(f)))+geom_bar(stat = "identity")
+
+american_gut_taxa.samplewide<-spread(ddply(select(american_gut_taxa,c(sample,RA,o)),c("sample","o"),summarise,RA=sum(RA)),key = sample,value=RA)
+american_gut_taxa.samplewide[is.na(american_gut_taxa.samplewide)]<-0
+american_gut_taxa.samplewide$delta<-(american_gut_taxa.samplewide$sample2-american_gut_taxa.samplewide$sample1)/american_gut_taxa.samplewide$sample1
+arrange(american_gut_taxa.samplewide,-abs(delta))
+
+#More Fuso in sample 1 than in sample 2 and population
+filter(american_gut_taxa.wide,p=="Fusobacteria") %>% select(c(sample,RA))
+
+
+
+ddply(american_gut_taxa,c("sample"),summarise,n_uniq=length(unique(o)))
+
+
+
+
+```
+
