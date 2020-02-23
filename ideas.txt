@@ -1,0 +1,5 @@
+Ideas:
+-Machine learning algorithm that assigns/classifies potential disease states given a composition profile
+-Same idea, but that assigns therapies 
+-Analysis/algorithm that identifies candidate problematic species 
+-Model that incorporates non bacterial factors such as body type measurements or lifestyles to incorporate into model
