@@ -1,0 +1,199 @@
+---
+title: "Microbiome-disease classifier"
+author: "Steven Smith, PhD"
+date: "04/14/20"
+output: 
+  html_document: 
+    toc: yes
+---
+
+# Microbiome -> disease classifier
+## BACKGROUND & APPROACH
+Many people are obtaining their microbiome profiles (OTU/taxa counts) but are unsure how to place it in the context of clinical utility. As the microbiome isn't an exact sciecne (complex) and is in flux, there is ambigity in what defines a healthy or disease-associated microbiome. 
+
+Employing a classifier that assigns a microbial composition to a disease state is an unmet need. Furthermore, once the microbiome-disease association is made, prognosis/treatment is also just as unclear. 
+
+* Phase 0  
+Gather publicly available OTU count datasets/metadata
+
+* Phase I  
+Using data from publicly-available datasets, build a classifier that maps bacterial community composition (microbiome) to disease states. Given an unknown disease state, feed the compotion to assign. 
+
+* Phase II  
+Next, employ a classifier or model that maps composition (or disease) to a positive treatment outcome. 
+
+
+ASSUMPTIONS & LIMITATIONS: 
+* Limited to study design of existng datasets  
+* Can only classify based on which diseases are captured. 
+* Does not diagnose or treat, only narrows scope of potential options  
+
+INPUT DATA SOURCES: <various> see ___ for full manifest
+INPUT DATA LOCATION: 
+OUTPUT DATA LOCATIOn: 
+
+## PRE-ANALYSIS
+The following sections are outside the scope of the 'analysis' and are listed below
+
+### UPSTREAM PROCESSING/ANALYSIS
+Data was compiled and summarized across several sources
+See "merge_data_sources-steve.R" and Peter's scripts in this repo
+
+
+### SET UP ENVIORNMENT
+Load libraries and set global variables
+```{r setup, eval=T}
+#timestamp start
+timestamp()
+
+# clear previous enviornment
+rm(list = ls())
+
+
+##------------------------------------------
+## LIBRARIES
+##------------------------------------------
+library(ggplot2)
+library(tidyverse)
+library(plyr)
+library(reshape2)
+library(plot.utils)
+library(randomForest)
+library(utils)
+##------------------------------------------
+
+##------------------------------------------
+# GLOBAL VARIABLES
+##------------------------------------------
+
+user_name<-Sys.info()["user"]
+working_dir<-paste0("/Users/",user_name,"/Projects/<NAME>/") # don't forget trailing /
+results_dir<-paste0(working_dir,"results/") # assumes diretory exists
+data_dir<-paste0(working_dir,"data/") # assumes diretory exists
+input_data1<-paste0(data_dir,"data1.txt") 
+input_data2<-paste0(data_dir,"data2.txt") 
+
+default_theme<-theme_bw()+theme(text = element_text(size = 14)) # fix this
+
+
+```
+### FUNCTIONS
+List of functions
+1. Function 1  
+2. Function 2  
+```{r functions, eval=F}
+##------------------------------------------
+## FUNCTION 1
+##------------------------------------------
+myfunction<-function(x){
+  return(x+1)
+}
+##------------------------------------------
+```
+
+### READ IN DATA
+
+```{r read_in_data, eval=T}
+
+```
+
+### PROCESS DATA
+* This chunk handles transformations, data structure manipulations, summary stats.  
+* However, try to keep the original data as unfiltered as possible (leave this for chunk-specific analysis).   
+* The idea is to have eveyrthing each chunk needs at the ready.   
+* If multiple chunks use the same filtered dataset, then filter in this chunk so that the same operation isn't being performed in multiple chunks.  
+* Transformed dataframes should take the form "DF.TRANSFORMATION", .e.g, "input_data1.wide" if the new df is wide format.  
+* Similarly, transformed columns should take the form 'COLNAME.TRANSFORMATION', e.g., "input_data1$col.log".  
+* Summarized dataframes should take the form "DF.SUMMARY", .e.g, "input_data1.summary" like when computing summary statistics (condensing of original data).   
+
+```{r process, eval=T}
+
+##------------------------------------------
+## Replace NAs
+##------------------------------------------
+
+##------------------------------------------
+```
+## ANALYSIS
+
+### PROOF OF CONCEPT 
+
+```{r question1, eval=T}
+
+##------------------------------------------
+## The following is dummy data to demonstrate proof of concept 
+
+##------------------------------------------
+## Train RF
+##------------------------------------------
+#disease <OTU1> <OPTU2> .... <OTU N>
+
+
+generate_taxa_table<-function(n_otus,n_subjects){
+  # Generates a taxa table for a condition's input parameters
+  taxa_table<-matrix(ncol = n_otus,nrow=n_subjects)
+  
+  #Switch to decide if the OTU is associated with the conition
+  associated<-round(runif(n_otus,min = 0,max = 1))
+  
+  # Multiplation factor for each OTU distribution
+  factor<-runif(n_otus,min = 0,max = 1000)
+  
+  # Standard deviation of distribution. 1 if not assocaited, 10% of mean if associated
+  b<-(1-associated)+associated*factor*0.5
+  
+  #Mean of distribution. 
+  c<-associated*factor
+  for(i in 1:notus){
+    u=c[i]
+    s=b[i]
+    error<-rnorm(n = n_subjects,mean = 0,sd = 1)
+    taxa_table[,i]<-abs(round(rnorm(n = n_subjects,mean = u,sd = s)+error))
+    }
+  return(taxa_table)
+}
+
+n_healthy<-20
+n_disease<-20
+disease=c("cdiff","healhty")
+notus<-50
+
+otus<-rbind(data.frame(outcome="healhty",generate_taxa_table(n_otus = notus,n_subjects = n_healthy)),
+data.frame(outcome="cdiff",generate_taxa_table(n_otus = notus,n_subjects = n_disease)),
+data.frame(outcome="UC",generate_taxa_table(n_otus = notus,n_subjects = n_disease)))
+library(reshape2)
+library(ggplot2)
+library(randomForest)
+otus.long<-melt(otus)
+ggplot(otus.long,aes(x=value,fill=outcome))+geom_histogram()+facet_wrap(~variable)
+all_idx<-1:nrow(otus)
+training_idx<-sample(x = all_idx,size = 0.7*nrow(otus))
+testing_idx<-all_idx[!all_idx %in% training_idx]
+
+training_x<-select(otus,-c(outcome))[training_idx,]
+training_y<-select(otus,c(outcome))[training_idx,]
+testing_x<-select(otus,-c(outcome))[testing_idx,]
+testing_y<-select(otus,c(outcome))[testing_idx,]
+
+rf_result<-randomForest(x=training_x,y=training_y)
+data.frame(feature=rownames(rf_result$importance),MeanDecreaseGini=rf_result$importance) %>% arrange(-MeanDecreaseGini)
+
+ggplot(filter(otus.long,variable %in% c("X32","X19","X29")),aes(x=outcome,y=value,col=variable))+geom_point()+facet_wrap(~variable)
+
+data.frame(prediction=predict(object = rf_result,newdata = testing_x),actual=testing_y)
+
+```
+
+# CONCLUSION
+A concluding remark(s) on the major findings, preferabbly to pointers where the data can be found. 
+
+Helps to have a bullet point for each analysis chunk or an answer to each of the above 'questions':
+*  Answer 1. 
+*  Answer 2.  
+
+#END
+Cheatsheet:
+http://rmarkdown.rstudio.com>
+# TODO
+* mkdir the results dir if it doesn't exist
+* make ggplot a dependency for plot.utils?
