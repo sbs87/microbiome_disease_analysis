@@ -82,13 +82,19 @@ List of functions
 1. Function 1  
 2. Function 2  
 ```{r functions, eval=F}
-##------------------------------------------
-## FUNCTION 1
-##------------------------------------------
-myfunction<-function(x){
-  return(x+1)
+
+## THIS WILL BE IN UTILS AT SOME POINT
+name_overlaps<-function(df1,df2){
+i<-intersect(names(df1),
+names(df2))
+sd1<-setdiff(names(df1),
+names(df2))
+sd2<-setdiff(names(df2),names(df1))
+cat("intersection:\n",paste(i,"\n"))
+cat("in df1 but not df2:\n",paste(sd1,"\n"))
+cat("in df2 but not df1:\n",paste(sd2,"\n"))
+return(list("int"=i,"sd_1_2"=sd1,"sd_2_1"=sd2))
 }
-##------------------------------------------
 ```
 
 ### READ IN DATA
@@ -197,3 +203,35 @@ http://rmarkdown.rstudio.com>
 # TODO
 * mkdir the results dir if it doesn't exist
 * make ggplot a dependency for plot.utils?
+
+# Sandbox
+```{r}
+NIHMS1508672<-read.table("/Users/stevensmith/Projects/microbiome_disease_analysis/NIHMS1508672-supplement-7.tsv",header = T,sep = "\t",stringsAsFactors = F)
+NIHMS1508672_metadata<-read.table("/Users/stevensmith/Projects/microbiome_disease_analysis/NIHMS1508672-supplement-7_metadata.tsv",header = F,sep = "\t",stringsAsFactors = F)
+length(unique(NIHMS1508672$MONTREAL_ORD))
+
+NIHMS1508672.long<-melt(NIHMS1508672,id.vars =  NIHMS1508672_metadata$V1,variable.name = "OTU",value.name = "OTU_RA")
+
+NIHMS1508672.qc<-NIHMS1508672
+NIHMS1508672.qc[is.na(NIHMS1508672.qc)]<-0
+
+all_idx<-1:nrow(NIHMS1508672)
+
+training_idx<-sample(x = all_idx,size = 0.7*length(all_idx))
+testing_idx<-all_idx[!all_idx %in% training_idx]
+response_variable<-"MONTREAL_ORD"
+training_x<-select(NIHMS1508672.qc,-c(response_variable,NIHMS1508672_metadata$V1))[training_idx,]
+training_y<-select(NIHMS1508672.qc,c(response_variable))[training_idx,]
+testing_x<-select(NIHMS1508672.qc,-c(response_variable,NIHMS1508672_metadata$V1))[testing_idx,]
+testing_y<-select(NIHMS1508672.qc,c(response_variable))[testing_idx,]
+
+rf_result<-randomForest(x=training_x,y=as.factor(training_y))
+data.frame(feature=rownames(rf_result$importance),MeanDecreaseGini=rf_result$importance) %>% arrange(-MeanDecreaseGini)
+
+ggplot(filter(otus.long,variable %in% c("X32","X19","X29")),aes(x=outcome,y=value,col=variable))+geom_point()+facet_wrap(~variable)
+
+data.frame(prediction=predict(object = rf_result,newdata = testing_x),actual=testing_y)
+
+
+
+```

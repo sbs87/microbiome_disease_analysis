@@ -1,0 +1,24 @@
+GID	Sample identifier
+SubjectID	Patient identifier
+sampleType	Biopsy or stool sample
+collectionWeek	Number of weeks since baseline sample (week 0) was collected.
+age	Patient age at diagnosis. (All patients were newly diagnosed when they entered the study.)
+gender	Gender
+race	Race / ethnicity
+INITIAL_TRT_C4	Initial treatement category: 5ASA (mesalamine), CS-IV (intravenous corticosteroids), CS-Oral (oral corticosteroids), None (no medication).
+antibiotics	Antibiotics treatment prior to sample collection (yes/no).
+antibiotics_time_to	Days between antibiotics treatment stopped and sample collection
+antibiotics_type	Type of antibiotics
+COLECTOMY_WK52	Colectomy or no colectomy by week 52.
+TWEEK_COLECTOMY_WK52	Week of colectomy relative to baseline (week 0).
+REMISSION_WK4	Remission status in week 4.
+CSFREE_REMISSION_WK12	Remission status in week 12.
+CSFREE_REMISSION_WK52	Remission status in week 52.
+PUCAI_C4_WKall	Disease severity category: inactive (PUCAI: <10), mild (PUCAI: 10-30), moderate (PUCAI: 35-60), and severe (PUCAI: ≥65) disease (scores are increments of 5)
+CALPROTECTIN_WKall	Fecal calprotectin (mcg/g)
+IGA	anti-Saccharomyces cerevisiae antibodies (ASCA) immunoglobulin A (IgA)
+IGG	anti-Saccharomyces cerevisiae antibodies (ASCA) immunoglobulin G (IgG)
+SER_ANCA	anti-neutrophil cytoplasmic antibodies (ANCA)
+SER_CBIR1	anti-flagellin antibodies (CBir1)
+SER_OMPC	anti-outer membrane porin C (OmpC)
+MONTREAL_ORD	Montreal Classification: Proctosigmoiditis;  Left-sided colitis;  Extensive or Pancolitis or Unasessable
